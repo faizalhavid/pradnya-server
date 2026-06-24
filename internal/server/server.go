@@ -12,10 +12,10 @@ type Server struct {
 	Config *config.Config
 }
 
-func New(cfg *config.Config) *Server {
+func NewServer(cfg *config.Config, modules *Modules) *Server {
 	return &Server{
 		Config: cfg,
-		Router: setupRouter(),
+		Router: setupRouter(modules),
 	}
 }
 

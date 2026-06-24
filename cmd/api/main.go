@@ -1,7 +1,14 @@
+// @title Pradnya API
+// @version 1.0
+// @description Pradnya Backend API
+// @BasePath /api
+
 package main
 
 import (
 	"log"
+
+	_ "github.com/faizalhavid/pradnya-server/docs"
 
 	"github.com/faizalhavid/pradnya-server/internal/config"
 	"github.com/faizalhavid/pradnya-server/internal/database"
@@ -23,7 +30,8 @@ func main() {
 	}
 
 	//
-	srv := server.New(cfg)
+	modules := server.BuildModules(db, cfg)
+	srv := server.NewServer(cfg, modules)
 	if err := srv.Run(); err != nil {
 		log.Fatalf("Failed to run server: %v", err)
 	}

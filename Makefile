@@ -20,3 +20,6 @@ migrate-down:
 
 migrate-create:
 	migrate create -ext sql -dir migrations -seq $(name)
+
+redocs:
+	swag init -g cmd/api/main.go

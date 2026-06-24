@@ -1,24 +1,9 @@
 package auth
 
 import (
-	"time"
-
-	UserDto "github.com/faizalhavid/pradnya-server/internal/user"
+	"github.com/faizalhavid/pradnya-server/internal/shared"
+	"github.com/faizalhavid/pradnya-server/internal/user"
 )
-
-type TokenPurpose string
-
-const (
-	TokenPurposeAccess  TokenPurpose = "access"
-	TokenPurposeRefresh TokenPurpose = "refresh"
-	TokenPurposeReset   TokenPurpose = "reset_password"
-	TokenPurposeVerify  TokenPurpose = "verify_email"
-)
-
-type TokenData struct {
-	Token     string    `json:"token"`
-	ExpiredAt time.Time `json:"expired_at"`
-}
 
 type RegisterRequest struct {
 	Name     string `json:"name" binding:"required"`
@@ -32,15 +17,15 @@ type LoginRequest struct {
 }
 
 type CredentialsData struct {
-	AccessToken  TokenData `json:"access_token"`
-	RefreshToken TokenData `json:"refresh_token"`
+	AccessToken  shared.TokenData `json:"access_token"`
+	RefreshToken shared.TokenData `json:"refresh_token"`
 }
 
 type LoginResponse struct {
-	UserDto.UserResponse
-	CredentialsData
+	user        user.UserResponse
+	credentials CredentialsData
 }
 
 type RegisterResponse struct {
-	UserDto.UserResponse
+	user user.UserResponse
 }

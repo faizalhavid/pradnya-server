@@ -20,9 +20,15 @@ type DatabaseConfig struct {
 	Name     string
 }
 
+type JWTConfig struct {
+	Secret string
+	Issuer string
+}
+
 type Config struct {
 	App AppConfig
 	DB  DatabaseConfig
+	JWT JWTConfig
 }
 
 func Load() (*Config, error) {
@@ -40,6 +46,10 @@ func Load() (*Config, error) {
 			User:     os.Getenv("DB_USER"),
 			Password: os.Getenv("DB_PASSWORD"),
 			Name:     os.Getenv("DB_NAME"),
+		},
+		JWT: JWTConfig{
+			Secret: os.Getenv("JWT_SECRET"),
+			Issuer: os.Getenv("JWT_ISSUER"),
 		},
 	}, nil
 }
