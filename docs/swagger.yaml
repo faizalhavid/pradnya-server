@@ -1,5 +1,19 @@
 basePath: /api
 definitions:
+  auth.ForgotPasswordRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
+  auth.ForgotPasswordResponse:
+    properties:
+      reset_token:
+        $ref: '#/definitions/shared.TokenData'
+      to_email:
+        type: string
+    type: object
   auth.LoginRequest:
     properties:
       email:
@@ -28,12 +42,81 @@ definitions:
     type: object
   auth.RegisterResponse:
     type: object
+  auth.ResetPasswordRequest:
+    properties:
+      new_password:
+        minLength: 8
+        type: string
+      token:
+        type: string
+    required:
+    - new_password
+    - token
+    type: object
+  shared.TokenData:
+    properties:
+      expired_at:
+        type: string
+      token:
+        type: string
+    type: object
+  user.ProfileResponse:
+    properties:
+      date_birth:
+        type: string
+      first_name:
+        type: string
+      gender:
+        type: string
+      last_name:
+        type: string
+      photo:
+        type: string
+    type: object
+  user.UserResponse:
+    properties:
+      email:
+        type: string
+      id:
+        type: string
+      profile:
+        $ref: '#/definitions/user.ProfileResponse'
+      username:
+        type: string
+    type: object
 info:
   contact: {}
   description: Pradnya Backend API
   title: Pradnya API
   version: "1.0"
 paths:
+  /auth/forgot-password:
+    post:
+      consumes:
+      - application/json
+      description: Send reset password email
+      parameters:
+      - description: Forgot Password Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.ForgotPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.ForgotPasswordResponse'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Forgot Password
+      tags:
+      - Auth
   /auth/login:
     post:
       consumes:
@@ -61,6 +144,32 @@ paths:
       summary: Login user
       tags:
       - Auth
+  /auth/me:
+    post:
+      consumes:
+      - application/json
+      description: User
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.UserResponse'
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Me user
+      tags:
+      - Auth
   /auth/register:
     post:
       consumes:
@@ -86,6 +195,40 @@ paths:
             additionalProperties: true
             type: object
       summary: Register user
+      tags:
+      - Auth
+  /auth/reset-password:
+    post:
+      consumes:
+      - application/json
+      description: Reset user password
+      parameters:
+      - description: Reset Password Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.ResetPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Reset Password
       tags:
       - Auth
 swagger: "2.0"

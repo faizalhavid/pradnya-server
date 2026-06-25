@@ -16,6 +16,15 @@ type LoginRequest struct {
 	Password string `json:"password" binding:"required"`
 }
 
+type ForgotPasswordRequest struct {
+	Email string `json:"email" binding:"required,email"`
+}
+
+type ResetPasswordRequest struct {
+	Token       string `json:"token" binding:"required"`
+	NewPassword string `json:"new_password" binding:"required,min=8"`
+}
+
 type CredentialsData struct {
 	AccessToken  shared.TokenData `json:"access_token"`
 	RefreshToken shared.TokenData `json:"refresh_token"`
@@ -28,4 +37,9 @@ type LoginResponse struct {
 
 type RegisterResponse struct {
 	user user.UserResponse
+}
+
+type ForgotPasswordResponse struct {
+	ToEmail    string           `json:"to_email"`
+	ResetToken shared.TokenData `json:"reset_token"`
 }

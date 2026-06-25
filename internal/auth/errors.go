@@ -18,4 +18,10 @@ var ErrInvalidCredentials = shared.NewAppError(
 	"invalid email or password",
 )
 
+var ErrInvalidToken = shared.NewAppError(
+	http.StatusUnauthorized,
+	"INVALID_TOKEN",
+	"invalid token",
+)
+
 var ErrUserNotExist = shared.NewAppError(http.StatusNotFound, "USER_NOT_FOUND", "User Not Found")

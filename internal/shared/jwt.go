@@ -50,7 +50,7 @@ func (c JWTConfig) GenerateToken(
 			NotBefore: jwt.NewNumericDate(now),
 		},
 	}
-	token := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString(
 		[]byte(c.Secret),
 	)
@@ -61,4 +61,28 @@ func (c JWTConfig) GenerateToken(
 		Token:     tokenString,
 		ExpiredAt: ExpiredAt,
 	}, nil
+}
+
+func (c JWTConfig) ValidateToken(tokenString string) (*Claims, error) {
+	token, err := jwt.ParseWithClaims(
+		tokenString,
+		&Claims{},
+		func(token *jwt.Token) (interface{}, error) {
+			return []byte(c.Secret), nil
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	claims, ok := token.Claims.(*Claims)
+	if !ok || !token.Valid {
+		return nil, jwt.ErrTokenInvalidClaims
+	}
+
+	if claims.Issuer != c.Issuer {
+		return nil, jwt.ErrTokenInvalidClaims
+	}
+
+	return claims, nil
 }

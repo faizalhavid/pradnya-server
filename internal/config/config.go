@@ -25,10 +25,19 @@ type JWTConfig struct {
 	Issuer string
 }
 
+type MailConfig struct {
+	Host     string
+	Port     string
+	Username string
+	Password string
+	FromName string
+}
+
 type Config struct {
-	App AppConfig
-	DB  DatabaseConfig
-	JWT JWTConfig
+	App  AppConfig
+	DB   DatabaseConfig
+	JWT  JWTConfig
+	Mail MailConfig
 }
 
 func Load() (*Config, error) {
@@ -50,6 +59,13 @@ func Load() (*Config, error) {
 		JWT: JWTConfig{
 			Secret: os.Getenv("JWT_SECRET"),
 			Issuer: os.Getenv("JWT_ISSUER"),
+		},
+		Mail: MailConfig{
+			Host:     os.Getenv("SMTP_HOST"),
+			Port:     os.Getenv("SMTP_PORT"),
+			Username: os.Getenv("SMTP_USERNAME"),
+			Password: os.Getenv("SMTP_PASSWORD"),
+			FromName: os.Getenv("SMTP_FROM_NAME"),
 		},
 	}, nil
 }

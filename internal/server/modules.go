@@ -14,6 +14,7 @@ type Modules struct {
 func BuildModules(
 	db *gorm.DB,
 	cfg *config.Config,
+	mailer shared.Mailer,
 ) *Modules {
 	authRepo := auth.NewRepository(db)
 
@@ -23,6 +24,7 @@ func BuildModules(
 			Secret: cfg.JWT.Secret,
 			Issuer: cfg.App.AppName,
 		},
+		mailer,
 	)
 	authHandler := auth.NewHandler(
 		authService,

@@ -34,10 +34,10 @@ func (h *Handler) Register(c *gin.Context) {
 			return
 		}
 
-		shared.AppErrorResponse(c, shared.InternalServerError("internal server error"))
+		shared.AppErrorResponse(c, shared.InternalServerError("Internal server error"))
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{"message": "register success", "data": res})
+	shared.AppSuccessResponse(c, http.StatusAccepted, res)
 }
 
 func (h *Handler) Login(c *gin.Context) {
@@ -58,8 +58,62 @@ func (h *Handler) Login(c *gin.Context) {
 			return
 		}
 		fmt.Printf("Error %s", err)
-		shared.AppErrorResponse(c, shared.InternalServerError("internal server error"))
+		shared.AppErrorResponse(c, shared.InternalServerError("Internal server error"))
 		return
 	}
-	c.JSON(http.StatusAccepted, gin.H{"message": "login success", "data": res})
+	shared.AppSuccessResponse(c, http.StatusAccepted, res)
+}
+
+func (h *Handler) Me(c *gin.Context) {
+	userId := c.Param("id")
+	res, err := h.service.Me(userId)
+	if err != nil {
+		if errors.Is(err, ErrUserNotExist) {
+			shared.AppErrorResponse(c, shared.NotFound("User not found in system"))
+			return
+		}
+		fmt.Printf("Error : %s", err)
+		shared.AppErrorResponse(c, shared.InternalServerError("Internal server error"))
+		return
+	}
+	shared.AppSuccessResponse(c, http.StatusAccepted, res)
+}
+
+func (h *Handler) ForgotPassword(c *gin.Context) {
+	var req ForgotPasswordRequest
+	if err := c.ShouldBindBodyWithJSON(&req); err != nil {
+		shared.AppErrorResponse(c, shared.BadRequest(err.Error()))
+		return
+	}
+	res, err := h.service.ForgotPassword(req)
+	if err != nil {
+		if errors.Is(err, ErrUserNotExist) {
+			shared.AppErrorResponse(c, shared.NotFound("User not found in system"))
+			return
+		}
+		fmt.Printf("Error : %s", err)
+		shared.AppErrorResponse(c, shared.InternalServerError("Internal server error"))
+		return
+	}
+	shared.AppSuccessResponse(c, http.StatusAccepted, res)
+}
+
+func (h *Handler) ResetPassword(c *gin.Context) {
+	var req ResetPasswordRequest
+	if err := c.ShouldBindBodyWithJSON(&req); err != nil {
+		shared.AppErrorResponse(c, shared.BadRequest(err.Error()))
+		return
+	}
+
+	err := h.service.ResetPassword(req)
+	if err != nil {
+		if errors.Is(err, ErrInvalidToken) {
+			shared.AppErrorResponse(c, shared.Unauthorized("Invalid token"))
+			return
+		}
+		fmt.Printf("Error : %s", err)
+		shared.AppErrorResponse(c, shared.InternalServerError("Internal server error"))
+		return
+	}
+	shared.AppSuccessResponse(c, http.StatusAccepted, gin.H{"message": "Password reset successful"})
 }
