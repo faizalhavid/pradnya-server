@@ -6,23 +6,23 @@ import (
 )
 
 type RegisterRequest struct {
-	Name     string `json:"name" binding:"required"`
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required,min=8"`
+	Name     string `json:"name" binding:"required" example:"John Doe"`
+	Email    string `json:"email" binding:"required,email" example:"johndoe@example.com"`
+	Password string `json:"password" binding:"required,min=8" example:"password123"`
 }
 
 type LoginRequest struct {
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required"`
+	Email    string `json:"email" binding:"required,email" example:"johndoe@example.com"`
+	Password string `json:"password" binding:"required" example:"password123"`
 }
 
 type ForgotPasswordRequest struct {
-	Email string `json:"email" binding:"required,email"`
+	Email string `json:"email" binding:"required,email" example:"johndoe@example.com"`
 }
 
 type ResetPasswordRequest struct {
 	Token       string `json:"token" binding:"required"`
-	NewPassword string `json:"new_password" binding:"required,min=8"`
+	NewPassword string `json:"new_password" binding:"required,min=8" example:"newpassword123"`
 }
 
 type CredentialsData struct {
@@ -31,12 +31,12 @@ type CredentialsData struct {
 }
 
 type LoginResponse struct {
-	user        user.UserResponse
-	credentials CredentialsData
+	User        user.UserResponse `json:"user"`
+	Credentials CredentialsData   `json:"credentials"`
 }
 
 type RegisterResponse struct {
-	user user.UserResponse
+	User user.UserResponse `json:"user"`
 }
 
 type ForgotPasswordResponse struct {

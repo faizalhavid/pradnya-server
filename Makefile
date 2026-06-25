@@ -1,9 +1,13 @@
 DB_URL=postgres://postgres:postgres@localhost:5433/pradnya?sslmode=disable
 
+dev:
+	air
+
 run:
 	go run cmd/api/main.go
 
 seed:
+	go run cmd/seed/main.go
 	go run cmd/seed/main.go
 
 docker-up:

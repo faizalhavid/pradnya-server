@@ -28,6 +28,7 @@ func setupRouter(modules *Modules) *gin.Engine {
 	auth.RegisterRoutes(
 		api,
 		modules.AuthHandler,
+		modules.AuthMiddleware,
 	)
 
 	return router

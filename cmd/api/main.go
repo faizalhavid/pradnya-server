@@ -37,6 +37,7 @@ func main() {
 		cfg.Mail.Password,
 		cfg.Mail.FromName,
 	)
+
 	modules := server.BuildModules(db, cfg, *mailer)
 	srv := server.NewServer(cfg, modules)
 	if err := srv.Run(); err != nil {

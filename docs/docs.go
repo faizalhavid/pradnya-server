@@ -98,7 +98,7 @@ const docTemplate = `{
             }
         },
         "/auth/me": {
-            "post": {
+            "get": {
                 "description": "User",
                 "consumes": [
                     "application/json"
@@ -128,6 +128,13 @@ const docTemplate = `{
                     },
                     "403": {
                         "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -230,6 +237,17 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "auth.CredentialsData": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "$ref": "#/definitions/shared.TokenData"
+                },
+                "refresh_token": {
+                    "$ref": "#/definitions/shared.TokenData"
+                }
+            }
+        },
         "auth.ForgotPasswordRequest": {
             "type": "object",
             "required": [
@@ -237,7 +255,8 @@ const docTemplate = `{
             ],
             "properties": {
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "johndoe@example.com"
                 }
             }
         },
@@ -260,15 +279,25 @@ const docTemplate = `{
             ],
             "properties": {
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "johndoe@example.com"
                 },
                 "password": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "password123"
                 }
             }
         },
         "auth.LoginResponse": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "credentials": {
+                    "$ref": "#/definitions/auth.CredentialsData"
+                },
+                "user": {
+                    "$ref": "#/definitions/user.UserResponse"
+                }
+            }
         },
         "auth.RegisterRequest": {
             "type": "object",
@@ -279,19 +308,27 @@ const docTemplate = `{
             ],
             "properties": {
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "johndoe@example.com"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "John Doe"
                 },
                 "password": {
                     "type": "string",
-                    "minLength": 8
+                    "minLength": 8,
+                    "example": "password123"
                 }
             }
         },
         "auth.RegisterResponse": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "user": {
+                    "$ref": "#/definitions/user.UserResponse"
+                }
+            }
         },
         "auth.ResetPasswordRequest": {
             "type": "object",
@@ -302,7 +339,8 @@ const docTemplate = `{
             "properties": {
                 "new_password": {
                     "type": "string",
-                    "minLength": 8
+                    "minLength": 8,
+                    "example": "newpassword123"
                 },
                 "token": {
                     "type": "string"
@@ -324,19 +362,24 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "date_birth": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "1990-01-01"
                 },
                 "first_name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "John"
                 },
                 "gender": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Male"
                 },
                 "last_name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Doe"
                 },
                 "photo": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://example.com/photo.jpg"
                 }
             }
         },
@@ -344,16 +387,19 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "johndoe@example.com"
                 },
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "1"
                 },
                 "profile": {
                     "$ref": "#/definitions/user.ProfileResponse"
                 },
                 "username": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "johndoe"
                 }
             }
         }

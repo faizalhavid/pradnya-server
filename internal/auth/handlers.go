@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/faizalhavid/pradnya-server/internal/middleware"
 	"github.com/faizalhavid/pradnya-server/internal/shared"
 	"github.com/gin-gonic/gin"
 )
@@ -19,6 +20,20 @@ func NewHandler(s Service) *Handler {
 	}
 }
 
+// Register godoc
+//
+// @Summary Register user
+// @Description Create new account
+// @Tags Auth
+// @Accept json
+// @Produce json
+//
+// @Param request body RegisterRequest true "Register Request"
+//
+// @Success 201 {object} RegisterResponse
+// @Failure 400 {object} map[string]interface{}
+//
+// @Router /auth/register [post]
 func (h *Handler) Register(c *gin.Context) {
 	var req RegisterRequest
 
@@ -40,6 +55,20 @@ func (h *Handler) Register(c *gin.Context) {
 	shared.AppSuccessResponse(c, http.StatusAccepted, res)
 }
 
+// Login godoc
+//
+// @Summary Login user
+// @Description Verify User Cred
+// @Tags Auth
+// @Accept json
+// @Produce json
+//
+// @Param request body LoginRequest true "Login Request"
+//
+// @Success 200 {object} LoginResponse
+// @Failure 403 {object} map[string]interface{}
+//
+// @Router /auth/login [post]
 func (h *Handler) Login(c *gin.Context) {
 	var req LoginRequest
 	if err := c.ShouldBindBodyWithJSON(&req); err != nil {
@@ -64,9 +93,27 @@ func (h *Handler) Login(c *gin.Context) {
 	shared.AppSuccessResponse(c, http.StatusAccepted, res)
 }
 
+// Me godoc
+//
+// @Summary Me user
+// @Description User
+// @Tags Auth
+// @Accept json
+// @Produce json
+//
+// @Param id path string true "User ID"
+//
+// @Success 200 {object} user.UserResponse
+// @Failure 404 {object} map[string]interface{}
+// @Failure 403 {object} map[string]interface{}
+//
+// @Router /auth/me [get]
 func (h *Handler) Me(c *gin.Context) {
-	userId := c.Param("id")
-	res, err := h.service.Me(userId)
+	userID := c.GetString(middleware.ContextUserID)
+
+	res, err := h.service.Me(
+		userID,
+	)
 	if err != nil {
 		if errors.Is(err, ErrUserNotExist) {
 			shared.AppErrorResponse(c, shared.NotFound("User not found in system"))
@@ -79,6 +126,20 @@ func (h *Handler) Me(c *gin.Context) {
 	shared.AppSuccessResponse(c, http.StatusAccepted, res)
 }
 
+// ForgotPassword godoc
+//
+// @Summary Forgot Password
+// @Description Send reset password email
+// @Tags Auth
+// @Accept json
+// @Produce json
+//
+// @Param request body ForgotPasswordRequest true "Forgot Password Request"
+//
+// @Success 200 {object} ForgotPasswordResponse
+// @Failure 404 {object} map[string]interface{}
+//
+// @Router /auth/forgot-password [post]
 func (h *Handler) ForgotPassword(c *gin.Context) {
 	var req ForgotPasswordRequest
 	if err := c.ShouldBindBodyWithJSON(&req); err != nil {
@@ -98,6 +159,21 @@ func (h *Handler) ForgotPassword(c *gin.Context) {
 	shared.AppSuccessResponse(c, http.StatusAccepted, res)
 }
 
+// ResetPassword godoc
+//
+// @Summary Reset Password
+// @Description Reset user password
+// @Tags Auth
+// @Accept json
+// @Produce json
+//
+// @Param request body ResetPasswordRequest true "Reset Password Request"
+//
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]interface{}
+// @Failure 404 {object} map[string]interface{}
+//
+// @Router /auth/reset-password [post]
 func (h *Handler) ResetPassword(c *gin.Context) {
 	var req ResetPasswordRequest
 	if err := c.ShouldBindBodyWithJSON(&req); err != nil {
