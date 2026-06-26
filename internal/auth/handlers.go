@@ -95,18 +95,13 @@ func (h *Handler) Login(c *gin.Context) {
 
 // Me godoc
 //
-// @Summary Me user
-// @Description User
+// @Summary Current User
 // @Tags Auth
-// @Accept json
+// @Security BearerAuth
+//
 // @Produce json
 //
-// @Param id path string true "User ID"
-//
 // @Success 200 {object} user.UserResponse
-// @Failure 404 {object} map[string]interface{}
-// @Failure 403 {object} map[string]interface{}
-//
 // @Router /auth/me [get]
 func (h *Handler) Me(c *gin.Context) {
 	userID := c.GetString(middleware.ContextUserID)

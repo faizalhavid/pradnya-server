@@ -3,6 +3,10 @@
 // @description Pradnya Backend API
 // @BasePath /api
 
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Masukkan token dengan format: Bearer {token}
 package main
 
 import (

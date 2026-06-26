@@ -176,15 +176,6 @@ paths:
       - Auth
   /auth/me:
     get:
-      consumes:
-      - application/json
-      description: User
-      parameters:
-      - description: User ID
-        in: path
-        name: id
-        required: true
-        type: string
       produces:
       - application/json
       responses:
@@ -192,17 +183,9 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/user.UserResponse'
-        "403":
-          description: Forbidden
-          schema:
-            additionalProperties: true
-            type: object
-        "404":
-          description: Not Found
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Me user
+      security:
+      - BearerAuth: []
+      summary: Current User
       tags:
       - Auth
   /auth/register:
@@ -266,4 +249,10 @@ paths:
       summary: Reset Password
       tags:
       - Auth
+securityDefinitions:
+  BearerAuth:
+    description: 'Masukkan token dengan format: Bearer {token}'
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
