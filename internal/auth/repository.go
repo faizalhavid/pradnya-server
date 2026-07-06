@@ -10,16 +10,22 @@ type Repository interface {
 	FindByEmail(email string) (*model.User, error)
 	FindByID(id string) (*model.User, error)
 	UpdatePassword(userId string, newPassword string) error
+	UserTokenRepository
+	DeviceInfoRepository
 }
 type repository struct {
 	db *gorm.DB
+	UserTokenRepository
+	DeviceInfoRepository
 }
 
 func NewRepository(
 	db *gorm.DB,
 ) Repository {
 	return &repository{
-		db: db,
+		db:                   db,
+		UserTokenRepository:  NewUserTokenRepository(db),
+		DeviceInfoRepository: NewDeviceInfoRepository(db),
 	}
 }
 
@@ -43,4 +49,26 @@ func (r *repository) FindByID(id string) (*model.User, error) {
 
 func (r *repository) UpdatePassword(userId string, newPassword string) error {
 	return r.db.Model(&model.User{}).Where("id=?", userId).Update("password", newPassword).Error
+}
+
+func (r *repository) CreateUserToken(token *UserToken) error {
+	return r.db.Create(token).Error
+}
+
+func (r *repository) FirsOrCreateDeviceInfo(device *DeviceInfo) (*DeviceInfo, error) {
+	var existingDevice DeviceInfo
+	err := r.db.Where("fingerprint = ?", device.Fingerprint).First(&existingDevice).Error
+	if err == nil {
+		return &existingDevice, nil
+	}
+	if err != gorm.ErrRecordNotFound {
+		return nil, err
+	}
+
+	err = r.db.Create(device).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return device, nil
 }

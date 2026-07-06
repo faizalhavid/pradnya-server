@@ -8,6 +8,6 @@ type Service interface {
 	GetImageProfile(id string) (string, error)
 }
 
-type service struct {
-	repo Repository
-}
+// type service struct {
+// 	repo Repository
+// }

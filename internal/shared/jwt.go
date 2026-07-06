@@ -1,6 +1,7 @@
 package shared
 
 import (
+	"errors"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -13,6 +14,13 @@ const (
 	TokenPurposeRefresh TokenPurpose = "refresh"
 	TokenPurposeReset   TokenPurpose = "reset_password"
 	TokenPurposeVerify  TokenPurpose = "verify_email"
+)
+
+var (
+	ErrTokenExpired       = errors.New("token expired")
+	ErrTokenInvalid       = errors.New("invalid token")
+	ErrTokenInvalidIssuer = errors.New("invalid token issuer")
+	ErrTokenWrongPurpose  = errors.New("invalid token purpose")
 )
 
 type JWTConfig struct {
@@ -63,7 +71,10 @@ func (c JWTConfig) GenerateToken(
 	}, nil
 }
 
-func (c JWTConfig) ValidateToken(tokenString string) (*Claims, error) {
+func (c JWTConfig) ValidateToken(
+	tokenString string,
+	expectedPurpose TokenPurpose,
+) (*Claims, error) {
 	token, err := jwt.ParseWithClaims(
 		tokenString,
 		&Claims{},
@@ -77,11 +88,15 @@ func (c JWTConfig) ValidateToken(tokenString string) (*Claims, error) {
 
 	claims, ok := token.Claims.(*Claims)
 	if !ok || !token.Valid {
-		return nil, jwt.ErrTokenInvalidClaims
+		return nil, ErrTokenInvalid
 	}
 
 	if claims.Issuer != c.Issuer {
-		return nil, jwt.ErrTokenInvalidClaims
+		return nil, ErrTokenInvalidIssuer
+	}
+
+	if claims.Type != expectedPurpose {
+		return nil, ErrTokenWrongPurpose
 	}
 
 	return claims, nil

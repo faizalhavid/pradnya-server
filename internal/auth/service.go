@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/faizalhavid/pradnya-server/internal/shared"
@@ -14,6 +15,8 @@ type Service interface {
 	Me(userId string) (*user.UserResponse, error)
 	ForgotPassword(req ForgotPasswordRequest) (*ForgotPasswordResponse, error)
 	ResetPassword(Req ResetPasswordRequest) error
+	RefreshToken(req RefreshTokenRequest) (*LoginResponse, error)
+	Logout(req RefreshTokenRequest, userId string) error
 }
 
 type service struct {
@@ -92,6 +95,31 @@ func (s *service) Login(req LoginRequest) (*LoginResponse, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	deviceInfo := BuildDeviceInfo(req.UserAgent, req.IPAddress, authenticatedUser.ID)
+	fmt.Println("Device Info:", deviceInfo)
+	savedDevice, err := s.repo.FirstOrCreateDeviceInfo(&deviceInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	hashedRefreshToken, err := shared.HashData(refreshToken.Token)
+	if err != nil {
+		return nil, err
+	}
+
+	userToken := &UserToken{
+		Purpose:   shared.TokenPurposeRefresh,
+		TokenHash: string(hashedRefreshToken),
+		ExpiredAt: refreshToken.ExpiredAt,
+		UserId:    authenticatedUser.ID,
+		DeviceID:  savedDevice.ID,
+	}
+
+	err = s.repo.CreateUserToken(userToken)
+	if err != nil {
+		return nil, err
+	}
 	return &LoginResponse{
 		User: user.UserResponse{
 			ID:       authenticatedUser.ID,
@@ -151,7 +179,7 @@ func (s *service) ForgotPassword(req ForgotPasswordRequest) (*ForgotPasswordResp
 }
 
 func (s *service) ResetPassword(req ResetPasswordRequest) error {
-	claims, err := s.jwtCfg.ValidateToken(req.Token)
+	claims, err := s.jwtCfg.ValidateToken(req.Token, shared.TokenPurposeReset)
 	if err != nil {
 		return err
 	}
@@ -174,5 +202,99 @@ func (s *service) ResetPassword(req ResetPasswordRequest) error {
 		return err
 	}
 
+	return nil
+}
+
+func (s *service) RefreshToken(req RefreshTokenRequest) (*LoginResponse, error) {
+	claims, err := s.jwtCfg.ValidateToken(req.RefreshToken, shared.TokenPurposeRefresh)
+	if err != nil {
+		return nil, err
+	}
+	hash, _ := shared.HashData(req.RefreshToken)
+	token, err := s.repo.FindUserTokenByHash(hash)
+	if err != nil {
+		return nil, ErrInvalidToken
+	}
+	if token.RevokedAt != nil {
+		return nil, ErrTokenRevoked
+	}
+
+	if time.Now().After(token.ExpiredAt) {
+		return nil, ErrTokenExpired
+	}
+	acceessToken, err := s.jwtCfg.GenerateToken(
+		claims.UserID,
+		shared.TokenPurposeAccess,
+		15*time.Minute,
+	)
+	if err != nil {
+		return nil, err
+	}
+	refreshToken, err := s.jwtCfg.GenerateToken(
+		claims.UserID,
+		shared.TokenPurposeRefresh,
+		30*24*time.Hour,
+	)
+	hashedToken, err := shared.HashData(refreshToken.Token)
+	if err != nil {
+		return nil, err
+	}
+	newRefreshTokenHash := UserToken{
+		Purpose:   shared.TokenPurposeRefresh,
+		TokenHash: hashedToken,
+		ExpiredAt: refreshToken.ExpiredAt,
+		UserId:    claims.UserID,
+		DeviceID:  token.DeviceID,
+	}
+	err = s.repo.CreateUserToken(&newRefreshTokenHash)
+	if err != nil {
+		return nil, err
+	}
+
+	// Update the existing token with the new refresh token hash and expiration
+	now := time.Now()
+
+	token.RevokedAt = &now
+	token.UsedAt = &now
+
+	err = s.repo.UpdateUserToken(token)
+	if err != nil {
+		return nil, err
+	}
+
+	foundedUser, err := s.repo.FindByID(claims.UserID)
+	if err != nil {
+		return nil, ErrUserNotExist
+	}
+
+	return &LoginResponse{
+		User: user.UserResponse{
+			ID:       foundedUser.ID,
+			Username: foundedUser.Username,
+			Email:    foundedUser.Email,
+		},
+		Credentials: CredentialsData{
+			AccessToken:  *acceessToken,
+			RefreshToken: *refreshToken,
+		},
+	}, nil
+}
+
+func (s *service) Logout(req RefreshTokenRequest, userId string) error {
+	hash, _ := shared.HashData(req.RefreshToken)
+	token, err := s.repo.FindUserTokenByHash(hash)
+	if err != nil {
+		return ErrInvalidToken
+	}
+	if token.UserId != userId {
+		return ErrInvalidToken
+	}
+
+	now := time.Now()
+	token.RevokedAt = &now
+	err = s.repo.UpdateUserToken(token)
+	if err != nil {
+		return err
+	}
 	return nil
 }

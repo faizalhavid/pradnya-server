@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -25,12 +26,35 @@ func AuthMiddleware(
 		}
 
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-		claims, err := jwtCfg.ValidateToken(tokenString)
+		claims, err := jwtCfg.ValidateToken(
+			tokenString,
+			shared.TokenPurposeAccess,
+		)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Invalid token"})
+
+			switch {
+
+			case errors.Is(err, shared.ErrTokenExpired):
+				c.AbortWithStatusJSON(
+					http.StatusUnauthorized,
+					gin.H{"message": "token expired"},
+				)
+
+			case errors.Is(err, shared.ErrTokenWrongPurpose):
+				c.AbortWithStatusJSON(
+					http.StatusUnauthorized,
+					gin.H{"message": "invalid token purpose"},
+				)
+
+			default:
+				c.AbortWithStatusJSON(
+					http.StatusUnauthorized,
+					gin.H{"message": "invalid token"},
+				)
+			}
+
 			return
 		}
-
 		if claims.Type != shared.TokenPurposeAccess {
 			c.AbortWithStatusJSON(
 				http.StatusUnauthorized,

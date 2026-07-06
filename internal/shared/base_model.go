@@ -1,14 +1,16 @@
 package shared
 
 import (
+	"time"
+
 	"gorm.io/gorm"
 )
 
 type BaseModel struct {
-	ID string `gorm:"type:char(26);primaryKey" json:"id"`
-	gorm.Model
-	IsDeleted bool            `gorm:"default:false" json:"is_deleted"`
-	DeletedAt *gorm.DeletedAt `gorm:"index" json:"deleted_at"`
+	ID        string `gorm:"type:char(26);primaryKey"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
 
 func (e *BaseModel) BeforeCreate(tx *gorm.DB) error {

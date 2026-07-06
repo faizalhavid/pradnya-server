@@ -41,6 +41,13 @@ definitions:
       user:
         $ref: '#/definitions/user.UserResponse'
     type: object
+  auth.RefreshTokenRequest:
+    properties:
+      refresh_token:
+        type: string
+    required:
+    - refresh_token
+    type: object
   auth.RegisterRequest:
     properties:
       email:
@@ -174,6 +181,29 @@ paths:
       summary: Login user
       tags:
       - Auth
+  /auth/logout:
+    post:
+      parameters:
+      - description: Refresh Token Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.RefreshTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Logout
+      tags:
+      - Auth
   /auth/me:
     get:
       produces:
@@ -186,6 +216,27 @@ paths:
       security:
       - BearerAuth: []
       summary: Current User
+      tags:
+      - Auth
+  /auth/refresh-token:
+    post:
+      parameters:
+      - description: Refresh Token Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.RefreshTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.CredentialsData'
+      security:
+      - BearerAuth: []
+      summary: Refresh Token
       tags:
       - Auth
   /auth/register:

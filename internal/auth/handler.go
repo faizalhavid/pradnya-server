@@ -72,10 +72,13 @@ func (h *Handler) Register(c *gin.Context) {
 func (h *Handler) Login(c *gin.Context) {
 	var req LoginRequest
 	if err := c.ShouldBindBodyWithJSON(&req); err != nil {
-		// c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		shared.AppErrorResponse(c, shared.BadRequest(err.Error()))
 		return
 	}
+	// Extract IP address and user agent from the request
+	req.IPAddress = c.ClientIP()
+	req.UserAgent = c.GetHeader("User-Agent")
+
 	res, err := h.service.Login(req)
 	if err != nil {
 		if errors.Is(err, ErrUserNotExist) {
@@ -187,4 +190,74 @@ func (h *Handler) ResetPassword(c *gin.Context) {
 		return
 	}
 	shared.AppSuccessResponse(c, http.StatusAccepted, gin.H{"message": "Password reset successful"})
+}
+
+// RefreshToken godoc
+//
+// @Summary Refresh Token
+// @Tags Auth
+// @Security BearerAuth
+//
+// @Produce json
+// @Param request body RefreshTokenRequest true "Refresh Token Request"
+//
+// @Success 200 {object} CredentialsData
+// @Router /auth/refresh-token [post]
+func (h *Handler) RefreshToken(c *gin.Context) {
+	var req RefreshTokenRequest
+	if err := c.ShouldBindBodyWithJSON(&req); err != nil {
+		shared.AppErrorResponse(c, shared.BadRequest(err.Error()))
+		return
+	}
+
+	res, err := h.service.RefreshToken(req)
+	if err != nil {
+		if errors.Is(err, ErrInvalidToken) {
+			shared.AppErrorResponse(c, shared.Unauthorized("Invalid token"))
+			return
+		}
+		fmt.Printf("Error : %s", err)
+		shared.AppErrorResponse(c, shared.InternalServerError("Internal server error"))
+		return
+	}
+	shared.AppSuccessResponse(c, http.StatusAccepted, res)
+}
+
+// Logout godoc
+//
+// @Summary Logout
+// @Tags Auth
+// @Security BearerAuth
+//
+// @Produce json
+// @Param request body RefreshTokenRequest true "Refresh Token Request"
+//
+// @Success 200 {object} map[string]string
+// @Router /auth/logout [post]
+func (h *Handler) Logout(c *gin.Context) {
+	userID := c.GetString(middleware.ContextUserID)
+	var req RefreshTokenRequest
+	if err := c.ShouldBindBodyWithJSON(&req); err != nil {
+		shared.AppErrorResponse(c, shared.BadRequest(err.Error()))
+		return
+	}
+	if req.RefreshToken == "" {
+		shared.AppErrorResponse(c, shared.Unauthorized("Missing refresh token"))
+		return
+	}
+	err := h.service.Logout(req, userID)
+	if err != nil {
+		if errors.Is(err, ErrUserNotExist) {
+			shared.AppErrorResponse(c, shared.NotFound("User not found in system"))
+			return
+		}
+		if errors.Is(err, ErrInvalidToken) {
+			shared.AppErrorResponse(c, shared.Unauthorized("Invalid token"))
+			return
+		}
+		fmt.Printf("Error : %s", err)
+		shared.AppErrorResponse(c, shared.InternalServerError("Internal server error"))
+		return
+	}
+	shared.AppSuccessResponse(c, http.StatusAccepted, gin.H{"message": "Logout successful"})
 }

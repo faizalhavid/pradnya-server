@@ -19,7 +19,9 @@ func BuildModules(
 	cfg *config.Config,
 	mailer shared.Mailer,
 ) *Modules {
-	authRepo := auth.NewRepository(db)
+	authRepo := auth.NewRepository(
+		db,
+	)
 	jwtCfg := shared.JWTConfig{
 		Secret: cfg.JWT.Secret,
 		Issuer: cfg.App.AppName,

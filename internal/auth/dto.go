@@ -14,6 +14,9 @@ type RegisterRequest struct {
 type LoginRequest struct {
 	Email    string `json:"email" binding:"required,email" example:"johndoe@example.com"`
 	Password string `json:"password" binding:"required" example:"password123"`
+
+	IPAddress string `json:"-"`
+	UserAgent string `json:"-"`
 }
 
 type ForgotPasswordRequest struct {
@@ -42,4 +45,8 @@ type RegisterResponse struct {
 type ForgotPasswordResponse struct {
 	ToEmail    string           `json:"to_email"`
 	ResetToken shared.TokenData `json:"reset_token"`
+}
+
+type RefreshTokenRequest struct {
+	RefreshToken string `json:"refresh_token" binding:"required"`
 }

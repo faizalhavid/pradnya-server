@@ -25,3 +25,15 @@ var ErrInvalidToken = shared.NewAppError(
 )
 
 var ErrUserNotExist = shared.NewAppError(http.StatusNotFound, "USER_NOT_FOUND", "User Not Found")
+
+var ErrTokenRevoked = shared.NewAppError(
+	http.StatusUnauthorized,
+	"TOKEN_REVOKED",
+	"token has been revoked",
+)
+
+var ErrTokenExpired = shared.NewAppError(
+	http.StatusUnauthorized,
+	"TOKEN_EXPIRED",
+	"token has expired",
+)

@@ -1,12 +1,17 @@
 package database
 
 import (
-	model "github.com/faizalhavid/pradnya-server/internal/user"
+	"github.com/faizalhavid/pradnya-server/internal/auth"
+	"github.com/faizalhavid/pradnya-server/internal/user"
 	"gorm.io/gorm"
 )
 
 func Migrate(db *gorm.DB) error {
 	return db.AutoMigrate(
-		&model.User{},
+		&user.User{},
+		&user.UserProfile{},
+
+		&auth.UserToken{},
+		&auth.DeviceInfo{},
 	)
 }

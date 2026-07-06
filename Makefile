@@ -1,4 +1,4 @@
-DB_URL=postgres://postgres:postgres@localhost:5433/pradnya?sslmode=disable
+DB_URL=postgres://postgres:password@localhost:5433/pradnya?sslmode=disable
 
 dev:
 	air
