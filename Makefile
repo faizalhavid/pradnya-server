@@ -2,7 +2,6 @@ DB_URL=postgres://postgres:password@localhost:5433/pradnya?sslmode=disable
 
 dev:
 	air
-
 run:
 	go run cmd/api/main.go
 
